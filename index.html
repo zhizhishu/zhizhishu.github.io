@@ -30,7 +30,7 @@
         <p class="eyebrow">MASTER / AGENT / XRAY / SNELL</p>
         <h1>Flux 3x-ui Orchestrator</h1>
         <p class="hero-copy">
-          一个基于 Flux Panel 的新主控项目：在一个工作台里选择多台服务器，自动安装/配置 3x-ui，把 VLESS Reality、VMess WS、Trojan TLS、Shadowsocks 和 Snell 放进统一协议节点层，并统一回看 Xray、证书、流量与服务状态。
+          一个基于 Flux Panel 的新主控项目：在一个工作台里选择多台服务器，自动安装/配置 3x-ui，把 VLESS Reality、VMess WS、Trojan TLS、Shadowsocks、Snell 和远端端口转发放进统一规则视图，并统一回看 Xray、证书、流量与服务状态。
         </p>
         <div class="hero-actions">
           <a class="button primary" href="https://github.com/zhizhishu/flux-3xui-orchestrator">查看仓库</a>
@@ -43,7 +43,7 @@
       <section id="workspace" class="section">
         <div class="section-header">
           <h2>主控一键编排闭环已经打通</h2>
-          <p>当前版本能多选服务器生成编排任务，由副控 agent 自动领取执行；完成后把 3x-ui 连接信息、Xray inbound、Snell systemd 节点、证书、服务状态和流量快照回写到主控。</p>
+          <p>当前版本能多选服务器生成编排任务，由副控 agent 自动领取执行；完成后把 3x-ui 连接信息、Xray inbound/outbound、Snell systemd 节点、远端端口转发、证书、服务状态和流量快照回写到主控。</p>
         </div>
         <div class="metric-row" aria-label="Current MVP metrics">
           <div class="metric">
@@ -51,8 +51,8 @@
             <span>服务器一键选择</span>
           </div>
           <div class="metric">
-            <strong>5</strong>
-            <span>统一协议节点</span>
+            <strong>6</strong>
+            <span>协议与转发规则</span>
           </div>
           <div class="metric">
             <strong>5m</strong>
@@ -84,6 +84,10 @@
             <p>通过 Bearer token 操作 `/panel/api/inbounds/*`，读取 Xray config/outbounds，并可请求远端 Xray 重启。</p>
           </article>
           <article class="card">
+            <h3>Server Forward</h3>
+            <p>把被控机端口转发记录到 `server_forward_rule`，由 agent 创建 systemd+socat 服务，并在规则总览里和出入站一起查看。</p>
+          </article>
+          <article class="card">
             <h3>Deploy Task</h3>
             <p>主控生成一键编排脚本；授权副控 agent 拉取、执行、回传日志和元数据，避免不可追踪的远程改动。</p>
           </article>
@@ -105,6 +109,12 @@ POST /api/v1/protocol-node/list
 POST /api/v1/protocol-node/sync
 POST /api/v1/protocol-node/restart
 POST /api/v1/protocol-node/delete
+POST /api/v1/server-forward/create
+POST /api/v1/server-forward/update
+POST /api/v1/server-forward/list
+POST /api/v1/server-forward/delete
+POST /api/v1/server-forward/restart
+POST /api/v1/server-rule/overview
 POST /api/v1/three-xui/inbounds/list
 POST /api/v1/three-xui/inbounds/add
 POST /api/v1/three-xui/inbounds/update
@@ -128,6 +138,10 @@ POST /api/v1/three-xui/restart-xray</code></pre>
               <span class="tag green">ready</span>
             </div>
             <div class="status-item">
+              <span>远端端口转发与规则总览</span>
+              <span class="tag green">ready</span>
+            </div>
+            <div class="status-item">
               <span>Snell agent 常驻执行</span>
               <span class="tag green">ready</span>
             </div>
@@ -148,7 +162,7 @@ POST /api/v1/three-xui/restart-xray</code></pre>
           <li>
             <div>
               <strong>Runtime smoke tests</strong>
-              <span>用可丢弃的 3x-ui 测试环境验证安装、建节点、重启和流量同步。</span>
+              <span>已用临时 Docker 环境验证主控 API、agent claim/report、远端转发回写和规则总览；后续补完整 3x-ui fixture。</span>
             </div>
           </li>
           <li>
