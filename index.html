@@ -30,7 +30,7 @@
         <p class="eyebrow">MASTER / AGENT / XRAY / SNELL</p>
         <h1>Flux 3x-ui Orchestrator</h1>
         <p class="hero-copy">
-          一个基于 Flux Panel 的新主控项目：把转发面板的 UI 和节点基础，扩展成可以管理多台服务器、自动执行 Snell 部署任务，并直接代理 3x-ui/Xray 入站、出站与流量同步的控制平面。
+          一个基于 Flux Panel 的新主控项目：在一个工作台里选择多台服务器，自动安装/配置 3x-ui，创建 VLESS Reality、VMess WS、Trojan TLS、Shadowsocks 和 Snell 节点，并统一回看 Xray、证书、流量与服务状态。
         </p>
         <div class="hero-actions">
           <a class="button primary" href="https://github.com/zhizhishu/flux-3xui-orchestrator">查看仓库</a>
@@ -42,21 +42,21 @@
     <main class="main">
       <section id="workspace" class="section">
         <div class="section-header">
-          <h2>主控已经覆盖核心节点管理链路</h2>
-          <p>当前版本已经能配置远端 3x-ui 面板、结构化创建 inbound、同步流量快照、读取/保存 outbounds，并通过副控 agent 自动执行 Snell 部署任务。</p>
+          <h2>主控一键编排闭环已经打通</h2>
+          <p>当前版本能多选服务器生成编排任务，由副控 agent 自动领取执行；完成后把 3x-ui 连接信息、协议节点、Snell、证书、服务状态和流量快照回写到主控。</p>
         </div>
         <div class="metric-row" aria-label="Current MVP metrics">
           <div class="metric">
-            <strong>19</strong>
-            <span>主控代理接口</span>
+            <strong>multi</strong>
+            <span>服务器一键选择</span>
           </div>
           <div class="metric">
             <strong>4</strong>
-            <span>结构化入站模板</span>
+            <span>Xray 入站模板</span>
           </div>
           <div class="metric">
-            <strong>1</strong>
-            <span>副控执行脚本</span>
+            <strong>5m</strong>
+            <span>自动流量同步</span>
           </div>
           <div class="metric">
             <strong>2</strong>
@@ -73,7 +73,7 @@
         <div class="grid four">
           <article class="card">
             <h3>Control Server</h3>
-            <p>登记主控/副控服务器，保存 agent token、心跳时间、3x-ui endpoint、basePath、API token 和可选登录凭据。</p>
+            <p>登记主控/副控服务器，保存 agent token、3x-ui endpoint、API token、证书状态、服务状态、流量和心跳时间。</p>
           </article>
           <article class="card">
             <h3>3x-ui Proxy</h3>
@@ -85,7 +85,7 @@
           </article>
           <article class="card">
             <h3>Deploy Task</h3>
-            <p>Snell 先生成可审计脚本，再由授权副控 agent 拉取、执行并回传日志，避免主控直接做不可追踪的远程改动。</p>
+            <p>主控生成一键编排脚本；授权副控 agent 拉取、执行、回传日志和元数据，避免不可追踪的远程改动。</p>
           </article>
         </div>
       </section>
@@ -96,7 +96,9 @@
           <p>入站走 3x-ui Bearer API，出站读取从运行配置提取，保存则使用登录态保护的 Xray 模板接口。</p>
         </div>
         <div class="pipeline">
-          <pre class="runbook"><code>POST /api/v1/agent-task/claim
+          <pre class="runbook"><code>POST /api/v1/deploy-task/orchestrate
+POST /api/v1/control-server/heartbeat
+POST /api/v1/agent-task/claim
 POST /api/v1/agent-task/report
 POST /api/v1/three-xui/inbounds/list
 POST /api/v1/three-xui/inbounds/add
@@ -109,7 +111,7 @@ POST /api/v1/three-xui/outbounds/save
 POST /api/v1/three-xui/restart-xray</code></pre>
           <div class="status-list" aria-label="Deployment states">
             <div class="status-item">
-              <span>3x-ui 入站管理</span>
+              <span>主控一键编排 3x-ui</span>
               <span class="tag green">ready</span>
             </div>
             <div class="status-item">
@@ -117,11 +119,11 @@ POST /api/v1/three-xui/restart-xray</code></pre>
               <span class="tag green">ready</span>
             </div>
             <div class="status-item">
-              <span>Snell agent 自动执行</span>
+              <span>Snell agent 常驻执行</span>
               <span class="tag green">ready</span>
             </div>
             <div class="status-item">
-              <span>远端流量同步入库</span>
+              <span>证书/服务/流量状态</span>
               <span class="tag green">ready</span>
             </div>
           </div>
@@ -130,26 +132,26 @@ POST /api/v1/three-xui/restart-xray</code></pre>
 
       <section id="roadmap" class="section">
         <div class="section-header">
-          <h2>接下来做更顺手的编排</h2>
-          <p>核心链路已经落地，后续重点是把运维体验做扎实：常驻 agent、定时同步、协议校验和运行态看板。</p>
+          <h2>接下来做更强的运行保障</h2>
+          <p>核心链路已经落地，后续重点是烟测夹具、任务重试、协议校验和更细的运行态看板。</p>
         </div>
         <ol class="roadmap">
           <li>
             <div>
               <strong>Agent service</strong>
-              <span>给 `scripts/flux-agent.sh` 补 systemd unit 和安装脚本，让副控可常驻、可重启、可审计。</span>
+              <span>已提供 systemd 安装脚本，下一步补重试、退避和并发锁。</span>
             </div>
           </li>
           <li>
             <div>
-              <strong>Scheduled traffic sync</strong>
-              <span>把手动“同步流量”升级为周期任务，支持跨服务器历史对比。</span>
+              <strong>Runtime smoke tests</strong>
+              <span>用可丢弃的 3x-ui 测试环境验证安装、建节点、重启和流量同步。</span>
             </div>
           </li>
           <li>
             <div>
               <strong>Protocol guardrails</strong>
-              <span>增加 Reality key、端口占用、outbound tag 和 Snell checksum 校验。</span>
+              <span>继续增加 Reality public key 展示、outbound tag 和 Snell checksum 校验。</span>
             </div>
           </li>
           <li>
