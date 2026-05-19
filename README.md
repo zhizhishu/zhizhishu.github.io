@@ -1,6 +1,6 @@
 # zhizhishu.github.io
 
-Static project site for Flux 3x-ui Orchestrator.
+Static project site for Flux 3x-ui Orchestrator. The site summarizes the current master-control workbench, 3x-ui inbound/outbound proxy support, and Snell deployment-task direction.
 
 Published at:
 
