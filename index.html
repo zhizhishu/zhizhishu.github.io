@@ -30,7 +30,7 @@
         <p class="eyebrow">MASTER / AGENT / XRAY / SNELL</p>
         <h1>Flux 3x-ui Orchestrator</h1>
         <p class="hero-copy">
-          一个基于 Flux Panel 的新主控项目：在一个工作台里选择多台服务器，自动安装/配置 3x-ui，创建 VLESS Reality、VMess WS、Trojan TLS、Shadowsocks 和 Snell 节点，并统一回看 Xray、证书、流量与服务状态。
+          一个基于 Flux Panel 的新主控项目：在一个工作台里选择多台服务器，自动安装/配置 3x-ui，把 VLESS Reality、VMess WS、Trojan TLS、Shadowsocks 和 Snell 放进统一协议节点层，并统一回看 Xray、证书、流量与服务状态。
         </p>
         <div class="hero-actions">
           <a class="button primary" href="https://github.com/zhizhishu/flux-3xui-orchestrator">查看仓库</a>
@@ -43,7 +43,7 @@
       <section id="workspace" class="section">
         <div class="section-header">
           <h2>主控一键编排闭环已经打通</h2>
-          <p>当前版本能多选服务器生成编排任务，由副控 agent 自动领取执行；完成后把 3x-ui 连接信息、协议节点、Snell、证书、服务状态和流量快照回写到主控。</p>
+          <p>当前版本能多选服务器生成编排任务，由副控 agent 自动领取执行；完成后把 3x-ui 连接信息、Xray inbound、Snell systemd 节点、证书、服务状态和流量快照回写到主控。</p>
         </div>
         <div class="metric-row" aria-label="Current MVP metrics">
           <div class="metric">
@@ -51,8 +51,8 @@
             <span>服务器一键选择</span>
           </div>
           <div class="metric">
-            <strong>4</strong>
-            <span>Xray 入站模板</span>
+            <strong>5</strong>
+            <span>统一协议节点</span>
           </div>
           <div class="metric">
             <strong>5m</strong>
@@ -68,7 +68,7 @@
       <section id="architecture" class="section">
         <div class="section-header">
           <h2>控制平面拆成清楚的四层</h2>
-          <p>保持 KISS 和 YAGNI：不硬搬整套 3x-ui，而是用主控代理连接真实面板 API，再逐步补结构化表单和流量同步。</p>
+          <p>保持 KISS 和 YAGNI：不把 Snell 硬塞进 Xray，而是在主控做统一节点抽象，底层分别适配 3x-ui/Xray API 和 Snell agent/systemd。</p>
         </div>
         <div class="grid four">
           <article class="card">
@@ -76,12 +76,12 @@
             <p>登记主控/副控服务器，保存 agent token、3x-ui endpoint、API token、证书状态、服务状态、流量和心跳时间。</p>
           </article>
           <article class="card">
-            <h3>3x-ui Proxy</h3>
-            <p>通过 Bearer token 操作 `/panel/api/inbounds/*`，读取 Xray config/outbounds，并可请求远端 Xray 重启。</p>
+            <h3>Protocol Node</h3>
+            <p>把 Xray inbound 和 Snell 服务记录到 `protocol_node`，同一张节点列表里管理创建、删除、重启、同步和运行状态。</p>
           </article>
           <article class="card">
-            <h3>Outbound Session</h3>
-            <p>对 3x-ui `/panel/xray/update` 使用登录 + CSRF 通道保存完整 Xray/outbound JSON，避免绕开面板规则。</p>
+            <h3>3x-ui Proxy</h3>
+            <p>通过 Bearer token 操作 `/panel/api/inbounds/*`，读取 Xray config/outbounds，并可请求远端 Xray 重启。</p>
           </article>
           <article class="card">
             <h3>Deploy Task</h3>
@@ -100,6 +100,11 @@
 POST /api/v1/control-server/heartbeat
 POST /api/v1/agent-task/claim
 POST /api/v1/agent-task/report
+POST /api/v1/protocol-node/create
+POST /api/v1/protocol-node/list
+POST /api/v1/protocol-node/sync
+POST /api/v1/protocol-node/restart
+POST /api/v1/protocol-node/delete
 POST /api/v1/three-xui/inbounds/list
 POST /api/v1/three-xui/inbounds/add
 POST /api/v1/three-xui/inbounds/update
@@ -112,6 +117,10 @@ POST /api/v1/three-xui/restart-xray</code></pre>
           <div class="status-list" aria-label="Deployment states">
             <div class="status-item">
               <span>主控一键编排 3x-ui</span>
+              <span class="tag green">ready</span>
+            </div>
+            <div class="status-item">
+              <span>统一协议节点层</span>
               <span class="tag green">ready</span>
             </div>
             <div class="status-item">
@@ -138,12 +147,6 @@ POST /api/v1/three-xui/restart-xray</code></pre>
         <ol class="roadmap">
           <li>
             <div>
-              <strong>Agent service</strong>
-              <span>已提供 systemd 安装脚本，下一步补重试、退避和并发锁。</span>
-            </div>
-          </li>
-          <li>
-            <div>
               <strong>Runtime smoke tests</strong>
               <span>用可丢弃的 3x-ui 测试环境验证安装、建节点、重启和流量同步。</span>
             </div>
@@ -151,7 +154,7 @@ POST /api/v1/three-xui/restart-xray</code></pre>
           <li>
             <div>
               <strong>Protocol guardrails</strong>
-              <span>继续增加 Reality public key 展示、outbound tag 和 Snell checksum 校验。</span>
+              <span>继续增加 Reality public key 展示、outbound tag、Snell checksum 和节点端口占用校验。</span>
             </div>
           </li>
           <li>
